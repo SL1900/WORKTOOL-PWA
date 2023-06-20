@@ -1,0 +1,19 @@
+{
+    "id": "sl-worktool",
+    "name": "WorkTool",
+    "short_name": "WorkTool",
+    "display": "standalone",
+    "start_url": "/",
+    "scope": "/",
+    "theme_color": "#00d1b2",
+    "background_color": "#ffffff",
+    "orientation": "any",
+    "lang": "ru",
+    "icons":[
+        {
+            "src": "favicon.png",
+            "type": "image/png",
+            "size": "144x144"
+        }
+    ]
+}
