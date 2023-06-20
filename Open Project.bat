@@ -1,0 +1,1 @@
+start C:\Users\ilin-d\Desktop\David\VSCode-win32-x64-1.79.1\Code.exe -n ./
