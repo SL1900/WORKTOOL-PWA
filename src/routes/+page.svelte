@@ -2,45 +2,31 @@
 	import { onMount } from "svelte";
 	import TrayTooltip from "../components/TrayTooltip.svelte";
 	import ItemModal from "../components/ItemModal.svelte";
-  import { goto } from "$app/navigation";
-  import UploadModal from "../components/UploadModal.svelte";
-  import { base } from "$app/paths";
 
     let AddMessage : (message: string) => void;
-    let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
-
-    let LAST_UPDATE : number = 0;
-    let LAST_UPDATE_STRING : string = "";
 
     let data : App.DataFile = {};
     let items: App.ItemData[] = [];
     let filteredItems : App.ItemData[] = [];
+    let displayItems : App.ItemData[] = [];
 
     let search_string = "";
     let current_page = 0;
 
     let INITIAL_LOADING = true;
 
-    let SEARCH_INPUT_ELEMENT : HTMLInputElement;
-    let UPLOAD_MODAL : UploadModal;
-    let SEARCH_TERMS : App.SearchTerm[] = [];
-
     $:{
         data;
         for(let [id, item] of Object.entries(data))
         {
-            items.push({...item,id, highlights: {name: [], nsi: [], pr: []}});
+            items.push({...item,id});
         }
         items = items;
     }
-
-    let filteredResult = items;
     $:{
-        filteredResult = JSON.parse(JSON.stringify(items));
-
-        SEARCH_TERMS = [];
+        let filteredResult = items;
 
         for(let term of search_string.split(" "))
         {
@@ -49,25 +35,8 @@
             if(minus_term) term = term.slice(1);
             if(!term) continue;
 
-            SEARCH_TERMS.push({
-                text: term,
-                exclude: minus_term
-            });
-            
-            filteredResult = filteredResult.filter( (item, item_index) => {
-                let matches = {
-                    name: item.name.toLowerCase().includes(term),
-                    nsi: item.nsi.toLowerCase().includes(term),
-                    pr: item.pr.toLowerCase().includes(term)
-                }
-                let term_matched    = matches.name || matches.nsi || matches.pr;
-                ["name","nsi","pr"].forEach( (field) => {
-                    if(matches[field as keyof typeof matches])
-                    {
-                        let term_index = item[field as keyof typeof matches].toLowerCase().indexOf(term.toLowerCase())
-                        filteredResult[item_index].highlights[field as keyof typeof matches].push([term_index, term.length]);
-                    }
-                });
+            filteredResult = filteredResult.filter( (item) => {
+                let term_matched = item.name.toLowerCase().includes(term) || item.nsi.toLowerCase().includes(term) || item.pr.toLowerCase().includes(term);
                 return term_matched === !minus_term;
             });
         }
@@ -78,15 +47,8 @@
         //
         try
         {
-            let items_data = await fetch("https://datastoragesl.somedude0.repl.co/download");
-            data = await items_data.json();
-            let last_update = await fetch("https://datastoragesl.somedude0.repl.co/last_update");
-            LAST_UPDATE = (await last_update.json()).timestamp;
-            LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
-
-            setInterval(()=>{
-                LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
-            },5000);
+            let response = await fetch("https://datastoragesl.somedude0.repl.co/download");
+            data = await response.json();
             INITIAL_LOADING = false;
         }
         catch(error)
@@ -96,116 +58,10 @@
         //
     });
 
-    function ItemSelect( this: HTMLElement ,event: KeyboardEvent | MouseEvent)
+    function ItemSelect(event: KeyboardEvent | MouseEvent)
     {
-        let id : string = this.getAttribute("data-id") || " ";
-        modalItem = data[id as keyof typeof data];
+        modalItem = data[this.getAttribute("data-id")];
         ToggleModal(true);
-    }
-    function ClearSearch()
-    {
-        search_string = "";
-        SEARCH_INPUT_ELEMENT.focus();
-    }
-    function GetHighlightedString(id : number, field: "name" | "nsi" | "pr", item_id: string)
-    {
-        let merged_highlights = [];
-        let highlights = filteredItems[id].highlights[field];
-        highlights = highlights.sort( (a,b) => a[0] - b[0]);
-        for(let i in highlights)
-        {
-            if(!merged_highlights.length) merged_highlights.push(highlights[i])
-            else
-            {
-                if(highlights[+i - 1][1] > highlights[i][0])
-                {
-                    merged_highlights[merged_highlights.length - 1][1] = highlights[i][1];
-                }
-                else
-                {
-                    merged_highlights.push(highlights[i]);
-                }
-            }
-        }
-
-        let result_string = filteredItems[id][field]
-        for(let i = merged_highlights.length - 1; i >= 0; i--)
-        {
-            result_string = 
-                result_string?.slice(0,merged_highlights[i][0]) + 
-                '<span class="highlight">' + 
-                result_string?.slice(merged_highlights[i][0], merged_highlights[i][0] + merged_highlights[i][1]) + 
-                "</span>" + 
-                result_string?.slice(merged_highlights[i][0] + merged_highlights[i][1]);
-        }
-        return result_string;
-    }
-    function GetLastUpdateString(timestamp : number)
-    {
-        let diff = new Date().getTime() - timestamp;
-
-        let days    = Math.floor(diff / 1000 / 60 / 60 / 24);
-        let hours   = Math.floor(diff / 1000 / 60 / 60);
-        let minutes = Math.floor(diff / 1000 / 60);
-        let seconds = Math.floor(diff / 1000);
-
-        let time_string = "";
-
-        {
-            let declination = "";
-            let amount = 0;
-
-            let rest = days % 10;
-
-            if(days > 10 && days < 15) declination = "дней";
-            else if(rest % 10 == 1) declination = "день";
-            else if(rest > 1 && rest < 5) declination = "дня";
-            else declination = "дней";
-
-            amount = days;
-
-            time_string += ` ${amount} ${declination}`;
-        }
-        
-        {
-            let declination = "";
-            let amount = 0;
-
-            hours = hours % 24;
-
-            let rest = hours % 10;
-
-            if(hours > 10 && hours < 15) declination = "часов";
-            else if(rest % 10 == 1) declination = "час";
-            else if(rest > 1 && rest < 5) declination = "часа";
-            else declination = "часов";
-
-            amount = hours;
-            time_string += ` ${amount} ${declination}`;
-        }
-        
-        {
-            let declination = "";
-            let amount = 0;
-
-            let rest = minutes % 10;
-            minutes = minutes % 60;
-
-            if(minutes > 10 && minutes < 15) declination = "минут";
-            else if(rest % 10 == 1) declination = "минуту";
-            else if(rest > 1 && rest < 5) declination = "минуты";
-            else declination = "минут";
-
-            amount = minutes;
-            time_string += ` ${amount} ${declination}`;
-        }
-
-        return `Последнее обновление${time_string} назад`;
-    }
-    function ShowUploadModal()
-    {
-        // goto("/file-upload");
-        ToggleUploadModal(true);
     }
 </script>
 
@@ -219,22 +75,20 @@
     {:else}
         <div class="search-bar">
             <div class="text">Поиск:</div>
-            <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
-            <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
+            <input type="text" bind:value={search_string}>
+            <div class="search-bar-clear-btn">Очистить</div>
         </div>
         <div class="status-bar">
             <div class="items-count">Результатов: {filteredItems.length} шт.</div>
-            {#each SEARCH_TERMS as term}
-                <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
-            {/each}
         </div>
         <div class="list">
             <!--  -->
             {#each filteredItems.slice(0,50) as item, index}
                 <div class="item { index % 2 ? "odd" : "even"}" on:click={ItemSelect} on:keydown={ItemSelect} data-id="{item.id}">
+                    {index}
                     <div class="details">
-                        <div class="name">{@html GetHighlightedString(index, "name",item.id)}</div>
-                        <div class="nsi-pr">{@html GetHighlightedString(index, "nsi",item.id)} / {@html GetHighlightedString(index, "pr",item.id)}</div>
+                        <div class="name">{item.name}</div>
+                        <div class="nsi-pr">{item.nsi} / {item.pr}</div>
                         <div class="cells-list">
                             {#each Object.entries(item.cells) as [cellName, count]}
                                 <div class="cell">
@@ -250,22 +104,12 @@
                 </div>
             {/each}
         </div>
-        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
-        <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
     {/if}
     <TrayTooltip bind:AddMessage={AddMessage} />
-    <span class="highlight" style="display: none;">placeholder</span>
 </main>
 
 <style>
-    .search-term,
-    .items-count,
-    .search-bar input,
-    .search-bar-clear-btn,
-    .item{
-        filter: drop-shadow(2px 2px 0 black);
-    }
     .loading-page{
         display: flex;
         justify-content: center;
@@ -286,16 +130,6 @@
         }
     }
     /*  */
-    .last-update-bar{
-        font-size: 0.8rem;
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-        row-gap: 2px;
-        border-top: 1px solid black;
-    }
-    /*  */
     main{
         display: flex;
         flex-direction: column;
@@ -303,9 +137,6 @@
         font-size: 1rem;
     }
 
-    .search-bar .text{
-        margin-right: 2px;
-    }
     .search-bar{
         display: flex;
         border-bottom: 1px solid black;
@@ -315,42 +146,6 @@
     .search-bar input{
         flex: 1;
     }
-    .search-bar-clear-btn{
-        cursor: pointer;
-        border: 1px solid black;
-        margin: 0 4px;
-        padding: 2px;
-        border-radius: 5px;
-        background-color: white;
-    }
-
-    .status-bar{
-        display: flex;
-        background-color: white;
-        border-bottom: 1px solid black;
-        gap: 10px;
-        margin: 5px 0;
-        padding: 4px 0;
-        flex-wrap: wrap;
-        row-gap: 5px;
-    }
-    .items-count{
-        background-color: white;
-        border: 1px solid black;
-        padding: 2px;
-    }
-
-    .search-term{
-        border: 1px solid black;
-        padding: 2px;
-        border-radius: 5px;
-    }
-    .search-term.include{
-        background-color: lightgreen;
-    }
-    .search-term.exclude{
-        background-color: lightcoral;
-    }
     
     .list{
         /* border: 1px solid blue; */
@@ -358,7 +153,6 @@
         overflow: hidden;
         overflow-y: auto;
         min-height: 0;
-        position: relative;
     }
 
     .item{
@@ -368,16 +162,10 @@
         margin: 5px;
         border-radius: 10px;
     }
-    .item.even{
-        background-color: #fff0e6;
+    /* .item.even{
+        border-color: wheat;
     }
     .item.odd{
-        background-color: white;
-    }
-    :global(.highlight){
-        background-color: lightgreen;
-    }
-    /* .item.odd{
         border-color: red;
     } */
 
