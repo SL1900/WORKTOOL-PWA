@@ -13,6 +13,11 @@ declare namespace App {
 		pr?: string,
 		unit: string,
 		id: string,
+		highlights:{
+			name: Array<Array<number>>
+			nsi: Array<Array<number>>
+			pr: Array<Array<number>>
+		}
 		cells: {
 			[string]: number
 		}
