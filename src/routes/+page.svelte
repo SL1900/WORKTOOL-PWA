@@ -13,7 +13,6 @@
     let data : App.DataFile = {};
     let items: App.ItemData[] = [];
     let filteredItems : App.ItemData[] = [];
-    let displayItems : App.ItemData[] = [];
 
     let search_string = "";
     let current_page = 0;
@@ -50,17 +49,11 @@
                     pr: item.pr.toLowerCase().includes(term)
                 }
                 let term_matched    = matches.name || matches.nsi || matches.pr;
-                ["name","nsi","pr"].forEach( field => {
-                    if(matches[field])
+                ["name","nsi","pr"].forEach( (field) => {
+                    if(matches[field as keyof typeof matches])
                     {
-                        let term_index = item[field].toLowerCase().indexOf(term.toLowerCase())
-                        filteredResult[item_index].highlights[field].push([term_index, term.length]);
-                        // filteredResult[item_index][field] = 
-                        //     item[field].slice(0,term_index) + 
-                        //     `<span class="highlight">` + 
-                        //     item[field].slice(term_index, term_index + term.length) + 
-                        //     "</span>" + 
-                        //     item[field].slice(term_index + term.length);
+                        let term_index = item[field as keyof typeof matches].toLowerCase().indexOf(term.toLowerCase())
+                        filteredResult[item_index].highlights[field as keyof typeof matches].push([term_index, term.length]);
                     }
                 });
                 return term_matched === !minus_term;
@@ -91,9 +84,10 @@
         //
     });
 
-    function ItemSelect(event: KeyboardEvent | MouseEvent)
+    function ItemSelect( this: HTMLElement ,event: KeyboardEvent | MouseEvent)
     {
-        modalItem = data[this.getAttribute("data-id")];
+        let id : string = this.getAttribute("data-id") || " ";
+        modalItem = data[id as keyof typeof data];
         ToggleModal(true);
     }
     function ClearSearch()
@@ -101,7 +95,7 @@
         search_string = "";
         SEARCH_INPUT_ELEMENT.focus();
     }
-    function GetHighlightedString(id,field: "name" | "nsi" | "pr", item_id)
+    function GetHighlightedString(id : number, field: "name" | "nsi" | "pr", item_id: string)
     {
         let merged_highlights = [];
         let highlights = filteredItems[id].highlights[field];
@@ -111,7 +105,7 @@
             if(!merged_highlights.length) merged_highlights.push(highlights[i])
             else
             {
-                if(highlights[i - 1][1] > highlights[i][0])
+                if(highlights[+i - 1][1] > highlights[i][0])
                 {
                     merged_highlights[merged_highlights.length - 1][1] = highlights[i][1];
                 }
@@ -134,7 +128,7 @@
         }
         return result_string;
     }
-    function GetLastUpdateString(timestamp)
+    function GetLastUpdateString(timestamp : number)
     {
         let diff = new Date().getTime() - timestamp;
 
