@@ -9,8 +9,8 @@ declare namespace App {
 
 	interface ItemData{
 		name: string,
-		nsi?: string,
-		pr?: string,
+		nsi: string,
+		pr: string,
 		unit: string,
 		id: string,
 		highlights:{
@@ -19,7 +19,7 @@ declare namespace App {
 			pr: Array<Array<number>>
 		}
 		cells: {
-			[string]: number
+			string: number
 		}
 	}
 
@@ -38,5 +38,10 @@ declare namespace App {
 	interface SideBarItem{
 		text: string,
 		callback: Function
+	}
+
+	interface SearchTerm{
+		text: string,
+		exclude: boolean
 	}
 }
