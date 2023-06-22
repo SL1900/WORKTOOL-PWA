@@ -20,6 +20,7 @@
     let INITIAL_LOADING = true;
 
     let SEARCH_INPUT_ELEMENT : HTMLInputElement;
+    let SEARCH_TERMS : App.SearchTerm[] = [];
 
     $:{
         data;
@@ -34,6 +35,8 @@
     $:{
         filteredResult = JSON.parse(JSON.stringify(items));
 
+        SEARCH_TERMS = [];
+
         for(let term of search_string.split(" "))
         {
             term = term.toLowerCase();
@@ -41,6 +44,10 @@
             if(minus_term) term = term.slice(1);
             if(!term) continue;
 
+            SEARCH_TERMS.push({
+                text: term,
+                exclude: minus_term
+            });
             
             filteredResult = filteredResult.filter( (item, item_index) => {
                 let matches = {
@@ -206,6 +213,12 @@
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
             <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
+        <div class="search-terms-bar">
+            <!--  -->
+            {#each SEARCH_TERMS as term}
+                <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
+            {/each}
+        </div>
         <div class="status-bar">
             <div class="items-count">Результатов: {filteredItems.length} шт.</div>
         </div>
@@ -292,6 +305,23 @@
     .status-bar{
         display: flex;
         justify-content: center;
+    }
+
+    .search-terms-bar{
+        display: flex;
+        padding: 4px;
+        gap: 5px;
+    }
+    .search-term{
+        border: 1px solid black;
+        padding: 2px;
+        border-radius: 5px;
+    }
+    .search-term.include{
+        background-color: lightgreen;
+    }
+    .search-term.exclude{
+        background-color: lightcoral;
     }
     
     .list{
