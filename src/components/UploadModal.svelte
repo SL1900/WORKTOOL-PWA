@@ -59,7 +59,7 @@
     <div class="instructions-title">Порядок действий</div>
     <ul class="instructions">
         <li>Сформировать ведомость по типу отчета "Для_сбора_"</li>
-        <li>Сохранить в файл txt</li>
+        <li>Сохранить в файл txt (имя файла любое)</li>
         <li>Загрузить полученный файл</li>
     </ul>
     <input bind:files={files} required accept="text/txt" type="file" name="file" id="file-input">
