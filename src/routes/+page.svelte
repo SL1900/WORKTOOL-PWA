@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import TrayTooltip from "../components/TrayTooltip.svelte";
 	import ItemModal from "../components/ItemModal.svelte";
+  import { goto } from "$app/navigation";
 
     let AddMessage : (message: string) => void;
     let ToggleModal : (state?: boolean) => void;
@@ -197,6 +198,10 @@
 
         return `Последнее обновление${time_string} назад`;
     }
+    function GoToUpdatePage()
+    {
+        goto("/file-upload");
+    }
 </script>
 
 <main>
@@ -207,7 +212,7 @@
             ЗАГРУЗКА...
         </div>
     {:else}
-        <div class="last-update-bar">{LAST_UPDATE_STRING}</div>
+        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={GoToUpdatePage} on:keydown={GoToUpdatePage}>Обновить</button></div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
