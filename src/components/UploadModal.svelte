@@ -1,6 +1,11 @@
 <script lang="ts">
+  import Page from "../routes/+page.svelte";
+
     // 
     let files : FileList;
+    let VISIBLE = false;
+    let UPLOADING = false;
+    let UPLOAD_DONE = false;
 
     $: if(files)
     {
@@ -19,15 +24,36 @@
         {
             let data : FormData = new FormData();
             data.append("file", file);
+
+            UPLOADING = true;
+            UPLOAD_DONE = false;
             await fetch("https://datastoragesl.somedude0.repl.co/upload",{
                 method: "POST",
                 body: data
             });
+            UPLOADING = false;
+            UPLOAD_DONE = true;
         }
+    }
+    export function Toggle(state : boolean)
+    {
+        if(state !== undefined)
+        {
+            VISIBLE = state;
+        }
+        else
+        {
+            VISIBLE = !VISIBLE;
+        }
+    }
+    function CloseModal()
+    {
+        UPLOAD_DONE = false;
+        Toggle(false);
     }
 </script>
 
-<main>
+<main style="display: {VISIBLE ? "flex" : "none"}">
     <!--  -->
     <div class="title">ОБНОВЛЕНИЕ ДАННЫХ</div>
     <div class="instructions-title">Порядок действий</div>
@@ -37,16 +63,23 @@
         <li>Загрузить полученный файл</li>
     </ul>
     <input bind:files={files} required accept="text/txt" type="file" name="file" id="file-input">
-    <button on:click={SubmitFiles} on:keydown={SubmitFiles} type="submit">Отправить</button>
+    <div class="buttons">
+        <button on:click={SubmitFiles} on:keydown={SubmitFiles} type="submit">Отправить</button>
+        <button on:click={CloseModal} on:keydown={CloseModal} type="submit">Закрыть</button>
+    </div>
+    <div style="display: {UPLOADING ? "flex" : "none"};" class="upload-indicator upload-process-inticator">Загрузка...</div>
+    <div style="display: {UPLOAD_DONE ? "flex" : "none"};" class="upload-indicator upload-done-inticator">Загрузка завершена</div>
 </main>
 
 <style>
     /*  */
     main{
-        display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        position: absolute;
+        background-color: white;
+        inset: 0;
     }
 
     .title{
@@ -67,6 +100,10 @@
         font-size: 1rem;
     }
     button{
+        font-size: 2rem;
+    }
+
+    .upload-indicator{
         font-size: 2rem;
     }
 </style>
