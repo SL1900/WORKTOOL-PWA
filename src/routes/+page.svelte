@@ -3,8 +3,10 @@
 	import TrayTooltip from "../components/TrayTooltip.svelte";
 	import ItemModal from "../components/ItemModal.svelte";
   import { goto } from "$app/navigation";
+  import UploadModal from "../components/UploadModal.svelte";
 
     let AddMessage : (message: string) => void;
+    let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
 
@@ -21,6 +23,7 @@
     let INITIAL_LOADING = true;
 
     let SEARCH_INPUT_ELEMENT : HTMLInputElement;
+    let UPLOAD_MODAL : UploadModal;
     let SEARCH_TERMS : App.SearchTerm[] = [];
 
     $:{
@@ -198,9 +201,10 @@
 
         return `Последнее обновление${time_string} назад`;
     }
-    function GoToUpdatePage()
+    function ShowUploadModal()
     {
-        goto("/file-upload");
+        // goto("/file-upload");
+        ToggleUploadModal(true);
     }
 </script>
 
@@ -212,7 +216,7 @@
             ЗАГРУЗКА...
         </div>
     {:else}
-        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={GoToUpdatePage} on:keydown={GoToUpdatePage}>Обновить</button></div>
+        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
@@ -250,6 +254,7 @@
             {/each}
         </div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
+        <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
     {/if}
     <TrayTooltip bind:AddMessage={AddMessage} />
     <span class="highlight" style="display: none;">placeholder</span>
