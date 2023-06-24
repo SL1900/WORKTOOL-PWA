@@ -4,6 +4,7 @@
 	import ItemModal from "../components/ItemModal.svelte";
   import { goto } from "$app/navigation";
   import UploadModal from "../components/UploadModal.svelte";
+  import { base } from "$app/paths";
 
     let AddMessage : (message: string) => void;
     let ToggleUploadModal : (state : boolean) => void;
@@ -258,6 +259,7 @@
     {/if}
     <TrayTooltip bind:AddMessage={AddMessage} />
     <span class="highlight" style="display: none;">placeholder</span>
+    <button on:click={()=>{goto(`${base}/about`)}}>OPEN NEW PAGE</button>
 </main>
 
 <style>
