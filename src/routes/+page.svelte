@@ -259,7 +259,6 @@
     {/if}
     <TrayTooltip bind:AddMessage={AddMessage} />
     <span class="highlight" style="display: none;">placeholder</span>
-    <button on:click={()=>{goto(`${base}/about`)}}>OPEN NEW PAGE</button>
 </main>
 
 <style>
