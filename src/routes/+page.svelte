@@ -217,20 +217,16 @@
             ЗАГРУЗКА...
         </div>
     {:else}
-        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
             <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
-        <div class="search-terms-bar">
-            <!--  -->
+        <div class="status-bar">
+            <div class="items-count">Результатов: {filteredItems.length} шт.</div>
             {#each SEARCH_TERMS as term}
                 <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
             {/each}
-        </div>
-        <div class="status-bar">
-            <div class="items-count">Результатов: {filteredItems.length} шт.</div>
         </div>
         <div class="list">
             <!--  -->
@@ -254,6 +250,7 @@
                 </div>
             {/each}
         </div>
+        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
         <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
     {/if}
@@ -262,6 +259,13 @@
 </main>
 
 <style>
+    .search-term,
+    .items-count,
+    .search-bar input,
+    .search-bar-clear-btn,
+    .item{
+        filter: drop-shadow(2px 2px 0 black);
+    }
     .loading-page{
         display: flex;
         justify-content: center;
@@ -284,6 +288,12 @@
     /*  */
     .last-update-bar{
         font-size: 0.8rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        row-gap: 2px;
+        border-top: 1px solid black;
     }
     /*  */
     main{
@@ -308,21 +318,28 @@
     .search-bar-clear-btn{
         cursor: pointer;
         border: 1px solid black;
-        margin: 0 2px;
+        margin: 0 4px;
         padding: 2px;
         border-radius: 5px;
+        background-color: white;
     }
 
     .status-bar{
         display: flex;
-        justify-content: center;
+        background-color: white;
+        border-bottom: 1px solid black;
+        gap: 10px;
+        margin: 5px 0;
+        padding: 4px 0;
+        flex-wrap: wrap;
+        row-gap: 5px;
+    }
+    .items-count{
+        background-color: white;
+        border: 1px solid black;
+        padding: 2px;
     }
 
-    .search-terms-bar{
-        display: flex;
-        padding: 4px;
-        gap: 5px;
-    }
     .search-term{
         border: 1px solid black;
         padding: 2px;
@@ -341,6 +358,7 @@
         overflow: hidden;
         overflow-y: auto;
         min-height: 0;
+        position: relative;
     }
 
     .item{
@@ -352,6 +370,9 @@
     }
     .item.even{
         background-color: #fff0e6;
+    }
+    .item.odd{
+        background-color: white;
     }
     :global(.highlight){
         background-color: lightgreen;
