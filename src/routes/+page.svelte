@@ -7,6 +7,9 @@
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
 
+    let LAST_UPDATE : number = 0;
+    let LAST_UPDATE_STRING : string = "";
+
     let data : App.DataFile = {};
     let items: App.ItemData[] = [];
     let filteredItems : App.ItemData[] = [];
@@ -21,12 +24,14 @@
         data;
         for(let [id, item] of Object.entries(data))
         {
-            items.push({...item,id});
+            items.push({...item,id, highlights: {name: [], nsi: [], pr: []}});
         }
         items = items;
     }
+
+    let filteredResult = items;
     $:{
-        let filteredResult = items;
+        filteredResult = JSON.parse(JSON.stringify(items));
 
         for(let term of search_string.split(" "))
         {
@@ -35,8 +40,27 @@
             if(minus_term) term = term.slice(1);
             if(!term) continue;
 
-            filteredResult = filteredResult.filter( (item) => {
-                let term_matched = item.name.toLowerCase().includes(term) || item.nsi.toLowerCase().includes(term) || item.pr.toLowerCase().includes(term);
+            
+            filteredResult = filteredResult.filter( (item, item_index) => {
+                let matches = {
+                    name: item.name.toLowerCase().includes(term),
+                    nsi: item.nsi.toLowerCase().includes(term),
+                    pr: item.pr.toLowerCase().includes(term)
+                }
+                let term_matched    = matches.name || matches.nsi || matches.pr;
+                ["name","nsi","pr"].forEach( field => {
+                    if(matches[field])
+                    {
+                        let term_index = item[field].toLowerCase().indexOf(term.toLowerCase())
+                        filteredResult[item_index].highlights[field].push([term_index, term.length]);
+                        // filteredResult[item_index][field] = 
+                        //     item[field].slice(0,term_index) + 
+                        //     `<span class="highlight">` + 
+                        //     item[field].slice(term_index, term_index + term.length) + 
+                        //     "</span>" + 
+                        //     item[field].slice(term_index + term.length);
+                    }
+                });
                 return term_matched === !minus_term;
             });
         }
@@ -47,8 +71,15 @@
         //
         try
         {
-            let response = await fetch("https://datastoragesl.somedude0.repl.co/download");
-            data = await response.json();
+            let items_data = await fetch("https://datastoragesl.somedude0.repl.co/download");
+            data = await items_data.json();
+            let last_update = await fetch("https://datastoragesl.somedude0.repl.co/last_update");
+            LAST_UPDATE = (await last_update.json()).timestamp;
+            LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
+
+            setInterval(()=>{
+                LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
+            },5000);
             INITIAL_LOADING = false;
         }
         catch(error)
@@ -63,6 +94,103 @@
         modalItem = data[this.getAttribute("data-id")];
         ToggleModal(true);
     }
+    function ClearSearch()
+    {
+        search_string = "";
+    }
+    function GetHighlightedString(id,field: "name" | "nsi" | "pr", item_id)
+    {
+        let merged_highlights = [];
+        let highlights = filteredItems[id].highlights[field];
+        highlights = highlights.sort( (a,b) => a[0] - b[0]);
+        for(let i in highlights)
+        {
+            if(!merged_highlights.length) merged_highlights.push(highlights[i])
+            else
+            {
+                if(highlights[i - 1][1] > highlights[i][0])
+                {
+                    merged_highlights[merged_highlights.length - 1][1] = highlights[i][1];
+                }
+                else
+                {
+                    merged_highlights.push(highlights[i]);
+                }
+            }
+        }
+
+        let result_string = filteredItems[id][field]
+        for(let i = merged_highlights.length - 1; i >= 0; i--)
+        {
+            result_string = 
+                result_string?.slice(0,merged_highlights[i][0]) + 
+                '<span class="highlight">' + 
+                result_string?.slice(merged_highlights[i][0], merged_highlights[i][0] + merged_highlights[i][1]) + 
+                "</span>" + 
+                result_string?.slice(merged_highlights[i][0] + merged_highlights[i][1]);
+        }
+        return result_string;
+    }
+    function GetLastUpdateString(timestamp)
+    {
+        let diff = new Date().getTime() - timestamp;
+
+        let days    = Math.floor(diff / 1000 / 60 / 60 / 24);
+        let hours   = Math.floor(diff / 1000 / 60 / 60);
+        let minutes = Math.floor(diff / 1000 / 60);
+        let seconds = Math.floor(diff / 1000);
+
+        let time_string = "";
+
+        
+        {
+            let declination = "";
+            let amount = 0;
+
+            let rest = days % 10;
+
+            if(days > 10 && days < 15) declination = "дней";
+            else if(rest % 10 == 1) declination = "день";
+            else if(rest > 1 && rest < 5) declination = "дня";
+            else declination = "дней";
+
+            amount = days;
+
+            time_string += ` ${amount} ${declination}`;
+        }
+        
+        {
+            let declination = "";
+            let amount = 0;
+
+            let rest = hours % 10;
+
+            if(hours > 10 && hours < 15) declination = "часов";
+            else if(rest % 10 == 1) declination = "час";
+            else if(rest > 1 && rest < 5) declination = "часа";
+            else declination = "часов";
+
+            amount = hours % 24;
+            time_string += ` ${amount} ${declination}`;
+        }
+        
+        {
+            let declination = "";
+            let amount = 0;
+
+            let rest = minutes % 10;
+
+            if(minutes > 10 && minutes < 15) declination = "минут";
+            else if(rest % 10 == 1) declination = "минуту";
+            else if(rest > 1 && rest < 5) declination = "минуты";
+            else declination = "минут";
+
+            amount = minutes % 60;
+            time_string += ` ${amount} ${declination}`;
+        }
+
+        return `Последнее обновление${time_string} назад`;
+    }
 </script>
 
 <main>
@@ -73,10 +201,11 @@
             ЗАГРУЗКА...
         </div>
     {:else}
+        <div class="last-update-bar">{LAST_UPDATE_STRING}</div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:value={search_string}>
-            <div class="search-bar-clear-btn">Очистить</div>
+            <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
         <div class="status-bar">
             <div class="items-count">Результатов: {filteredItems.length} шт.</div>
@@ -85,10 +214,9 @@
             <!--  -->
             {#each filteredItems.slice(0,50) as item, index}
                 <div class="item { index % 2 ? "odd" : "even"}" on:click={ItemSelect} on:keydown={ItemSelect} data-id="{item.id}">
-                    {index}
                     <div class="details">
-                        <div class="name">{item.name}</div>
-                        <div class="nsi-pr">{item.nsi} / {item.pr}</div>
+                        <div class="name">{@html GetHighlightedString(index, "name",item.id)}</div>
+                        <div class="nsi-pr">{@html item.nsi} / {@html item.pr}</div>
                         <div class="cells-list">
                             {#each Object.entries(item.cells) as [cellName, count]}
                                 <div class="cell">
@@ -107,6 +235,7 @@
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
     {/if}
     <TrayTooltip bind:AddMessage={AddMessage} />
+    <span class="highlight" style="display: none;">placeholder</span>
 </main>
 
 <style>
@@ -130,6 +259,10 @@
         }
     }
     /*  */
+    .last-update-bar{
+        font-size: 0.8rem;
+    }
+    /*  */
     main{
         display: flex;
         flex-direction: column;
@@ -137,6 +270,9 @@
         font-size: 1rem;
     }
 
+    .search-bar .text{
+        margin-right: 2px;
+    }
     .search-bar{
         display: flex;
         border-bottom: 1px solid black;
@@ -145,6 +281,18 @@
     }
     .search-bar input{
         flex: 1;
+    }
+    .search-bar-clear-btn{
+        cursor: pointer;
+        border: 1px solid black;
+        margin: 0 2px;
+        padding: 2px;
+        border-radius: 5px;
+    }
+
+    .status-bar{
+        display: flex;
+        justify-content: center;
     }
     
     .list{
@@ -162,10 +310,13 @@
         margin: 5px;
         border-radius: 10px;
     }
-    /* .item.even{
-        border-color: wheat;
+    .item.even{
+        background-color: #fff0e6;
     }
-    .item.odd{
+    :global(.highlight){
+        background-color: lightgreen;
+    }
+    /* .item.odd{
         border-color: red;
     } */
 
