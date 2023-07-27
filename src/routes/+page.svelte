@@ -261,7 +261,7 @@
             <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
         <div class="status-bar">
-            <div class="items-count">Результатов: {filteredItems.length} шт. {RESULTS_FROM_STORAGE ? " [Кешированные результаты]" : ""}</div>
+            <div class="items-count">Результатов: {filteredItems.length} шт. {RESULTS_FROM_STORAGE ? " [Cached]" : ""}</div>
             {#each SEARCH_TERMS as term}
                 <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
             {/each}
