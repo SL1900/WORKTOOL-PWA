@@ -19,7 +19,7 @@ declare namespace App {
 			pr: Array<Array<number>>
 		}
 		cells: {
-			string: number
+			[string]: number
 		}
 	}
 
