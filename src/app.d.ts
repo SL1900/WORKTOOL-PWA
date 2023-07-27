@@ -30,8 +30,18 @@ declare namespace App {
 			nsi: string,
 			unit: string,
 			cells:{
-				[string]: number
+				[string?]: number
 			}
+		}
+	}
+
+	const AreaName = ["П01","П02","П03","П04"] as const;
+
+	type AreasType = {
+		[name in typeof AreaName[number]]: {
+			name: string,
+			key: AreaName,
+			items: {name: string, amount: number}[]
 		}
 	}
 
@@ -40,8 +50,14 @@ declare namespace App {
 		callback: Function
 	}
 
-	interface SearchTerm{
-		text: string,
-		exclude: boolean
+	interface MapPolygon{
+		coords: number[][],
+		label_align: "left" | "right" | "center" | "top" | "bottom"
+		name: string
+	}
+
+	interface MapDescriptor{
+		key: string,
+		items: MapPolygon[]
 	}
 }
