@@ -22,6 +22,7 @@
     let current_page = 0;
 
     let INITIAL_LOADING = true;
+    let RESULTS_FROM_STORAGE = false;
 
     let SEARCH_INPUT_ELEMENT : HTMLInputElement;
     let UPLOAD_MODAL : UploadModal;
@@ -101,6 +102,7 @@
             LAST_UPDATE = Number.parseInt(localStorage.getItem("last_update") as string);
             LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
 
+            RESULTS_FROM_STORAGE = true;
             INITIAL_LOADING = false;
             console.log("Loaded from storage");
         } catch (error) {
@@ -121,6 +123,7 @@
             setInterval(()=>{
                 LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
             },5000);
+            RESULTS_FROM_STORAGE = false;
             INITIAL_LOADING = false;
         }
         catch(error)
@@ -258,7 +261,7 @@
             <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
         <div class="status-bar">
-            <div class="items-count">Результатов: {filteredItems.length} шт.</div>
+            <div class="items-count">Результатов: {filteredItems.length} шт. {RESULTS_FROM_STORAGE ? " [Кешированные результаты]" : ""}</div>
             {#each SEARCH_TERMS as term}
                 <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
             {/each}
