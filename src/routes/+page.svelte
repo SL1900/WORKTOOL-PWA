@@ -29,6 +29,7 @@
 
     $:{
         data;
+        items = [];
         for(let [id, item] of Object.entries(data))
         {
             items.push({...item,id, highlights: {name: [], nsi: [], pr: []}});
@@ -90,6 +91,21 @@
     }
 
     onMount( async ()=>{
+        try {
+            //
+            let data_string = localStorage.getItem("data_string");
+            if(!data_string) throw new Error("No data saved");
+
+            data = JSON.parse(data_string);
+
+            LAST_UPDATE = Number.parseInt(localStorage.getItem("last_update") as string);
+            LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
+
+            INITIAL_LOADING = false;
+            console.log("Loaded from storage");
+        } catch (error) {
+            //
+        }
         //
         try
         {
@@ -98,6 +114,9 @@
             let last_update = await fetch("https://datastoragesl.somedude0.repl.co/last_update");
             LAST_UPDATE = (await last_update.json()).timestamp;
             LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
+
+            localStorage.setItem("data_string",JSON.stringify(data));
+            localStorage.setItem("last_update", LAST_UPDATE.toString());
 
             setInterval(()=>{
                 LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
