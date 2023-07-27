@@ -2,6 +2,7 @@
 	import { onMount } from "svelte";
 	import TrayTooltip from "../components/TrayTooltip.svelte";
 	import ItemModal from "../components/ItemModal.svelte";
+	import MapModal from "../components/MapModal.svelte";
 
     let AddMessage : (message: string) => void;
     let ToggleModal : (state?: boolean) => void;
@@ -19,6 +20,8 @@
     let current_page = 0;
 
     let INITIAL_LOADING = true;
+
+    let SEARCH_INPUT_ELEMENT : HTMLInputElement;
 
     $:{
         data;
@@ -46,13 +49,22 @@
                     name: item.name.toLowerCase().includes(term),
                     nsi: item.nsi.toLowerCase().includes(term),
                     pr: item.pr.toLowerCase().includes(term)
-                }
+                };
+                
                 let term_matched    = matches.name || matches.nsi || matches.pr;
-                ["name","nsi","pr"].forEach( field => {
-                    if(matches[field])
+
+                let checkFields = ["name","nsi","pr"];
+                let field : keyof typeof matches;
+
+                let keys = Object.keys(matches);
+
+                for(let [field, matched] of Object.entries(matches))
+                {
+                    if(!checkFields.includes(field)) continue;
+                    if(matched)
                     {
-                        let term_index = item[field].toLowerCase().indexOf(term.toLowerCase())
-                        filteredResult[item_index].highlights[field].push([term_index, term.length]);
+                        let term_index = item[field as "name" | "nsi" | "pr"].toLowerCase().indexOf(term.toLowerCase())
+                        filteredResult[item_index].highlights[field as "name" | "nsi" | "pr"].push([term_index, term.length]);
                         // filteredResult[item_index][field] = 
                         //     item[field].slice(0,term_index) + 
                         //     `<span class="highlight">` + 
@@ -60,7 +72,8 @@
                         //     "</span>" + 
                         //     item[field].slice(term_index + term.length);
                     }
-                });
+                }
+
                 return term_matched === !minus_term;
             });
         }
@@ -89,21 +102,23 @@
         //
     });
 
-    function ItemSelect(event: KeyboardEvent | MouseEvent)
+    function ItemSelect(this: HTMLElement, event: KeyboardEvent | MouseEvent)
     {
-        modalItem = data[this.getAttribute("data-id")];
+        let item_id : string = this.getAttribute("data-id") as string;
+        modalItem = data[item_id as keyof typeof data];
         ToggleModal(true);
     }
     function ClearSearch()
     {
         search_string = "";
+        SEARCH_INPUT_ELEMENT.focus();
     }
-    function GetHighlightedString(id,field: "name" | "nsi" | "pr", item_id)
+    function GetHighlightedString(id: number,field: "name" | "nsi" | "pr", item_id: string)
     {
         let merged_highlights = [];
         let highlights = filteredItems[id].highlights[field];
         highlights = highlights.sort( (a,b) => a[0] - b[0]);
-        for(let i in highlights)
+        for(let i = 0; i < highlights.length; i++)
         {
             if(!merged_highlights.length) merged_highlights.push(highlights[i])
             else
@@ -131,7 +146,7 @@
         }
         return result_string;
     }
-    function GetLastUpdateString(timestamp)
+    function GetLastUpdateString(timestamp: number)
     {
         let diff = new Date().getTime() - timestamp;
 
@@ -142,7 +157,6 @@
 
         let time_string = "";
 
-        
         {
             let declination = "";
             let amount = 0;
@@ -163,6 +177,8 @@
             let declination = "";
             let amount = 0;
 
+            hours = hours % 24;
+
             let rest = hours % 10;
 
             if(hours > 10 && hours < 15) declination = "часов";
@@ -170,7 +186,7 @@
             else if(rest > 1 && rest < 5) declination = "часа";
             else declination = "часов";
 
-            amount = hours % 24;
+            amount = hours;
             time_string += ` ${amount} ${declination}`;
         }
         
@@ -179,13 +195,14 @@
             let amount = 0;
 
             let rest = minutes % 10;
+            minutes = minutes % 60;
 
             if(minutes > 10 && minutes < 15) declination = "минут";
             else if(rest % 10 == 1) declination = "минуту";
             else if(rest > 1 && rest < 5) declination = "минуты";
             else declination = "минут";
 
-            amount = minutes % 60;
+            amount = minutes;
             time_string += ` ${amount} ${declination}`;
         }
 
@@ -204,7 +221,7 @@
         <div class="last-update-bar">{LAST_UPDATE_STRING}</div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
-            <input type="text" bind:value={search_string}>
+            <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
             <div class="search-bar-clear-btn" on:click={ClearSearch} on:keydown={ClearSearch}>Очистить</div>
         </div>
         <div class="status-bar">
@@ -216,12 +233,12 @@
                 <div class="item { index % 2 ? "odd" : "even"}" on:click={ItemSelect} on:keydown={ItemSelect} data-id="{item.id}">
                     <div class="details">
                         <div class="name">{@html GetHighlightedString(index, "name",item.id)}</div>
-                        <div class="nsi-pr">{@html item.nsi} / {@html item.pr}</div>
+                        <div class="nsi-pr">{@html GetHighlightedString(index, "nsi",item.id)} / {@html GetHighlightedString(index, "pr",item.id)}</div>
                         <div class="cells-list">
                             {#each Object.entries(item.cells) as [cellName, count]}
                                 <div class="cell">
                                     <div class="cell-name">{cellName}</div>
-                                    <div class="cell-amount">{(count % 1) !== 0 ? count.toFixed(3) : count} {item.unit}</div>
+                                    <div class="cell-amount">{typeof count !== "number" ? "Cell data error" : ((count) % 1) !== 0 ? count.toFixed(3) : count} {item.unit}</div>
                                 </div>
                             {/each}
                         </div>
@@ -234,6 +251,7 @@
         </div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
     {/if}
+    <MapModal />
     <TrayTooltip bind:AddMessage={AddMessage} />
     <span class="highlight" style="display: none;">placeholder</span>
 </main>
