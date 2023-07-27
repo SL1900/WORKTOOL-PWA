@@ -3,8 +3,10 @@
 	import TrayTooltip from "../components/TrayTooltip.svelte";
 	import ItemModal from "../components/ItemModal.svelte";
 	import MapModal from "../components/MapModal.svelte";
+    import UploadModal from "../components/UploadModal.svelte";
 
     let AddMessage : (message: string) => void;
+    let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
 
@@ -22,6 +24,8 @@
     let INITIAL_LOADING = true;
 
     let SEARCH_INPUT_ELEMENT : HTMLInputElement;
+    let UPLOAD_MODAL : UploadModal;
+    let SEARCH_TERMS : App.SearchTerm[] = [];
 
     $:{
         data;
@@ -36,6 +40,8 @@
     $:{
         filteredResult = JSON.parse(JSON.stringify(items));
 
+        SEARCH_TERMS = [];
+
         for(let term of search_string.split(" "))
         {
             term = term.toLowerCase();
@@ -43,27 +49,30 @@
             if(minus_term) term = term.slice(1);
             if(!term) continue;
 
+            SEARCH_TERMS.push({
+                text: term,
+                exclude: minus_term
+            });
+
             
             filteredResult = filteredResult.filter( (item, item_index) => {
-                let matches = {
+                const Fields = ["name","nsi","pr"] as const;
+                type Matches = {
+                    [name in typeof Fields[number]]: boolean
+                };
+                let matches: Matches = {
                     name: item.name.toLowerCase().includes(term),
                     nsi: item.nsi.toLowerCase().includes(term),
                     pr: item.pr.toLowerCase().includes(term)
                 };
                 
-                let term_matched    = matches.name || matches.nsi || matches.pr;
-
-                let checkFields = ["name","nsi","pr"];
-                let field : keyof typeof matches;
-
-                let keys = Object.keys(matches);
+                let term_matched: boolean = !!(matches.name || matches.nsi || matches.pr);
 
                 for(let [field, matched] of Object.entries(matches))
                 {
-                    if(!checkFields.includes(field)) continue;
                     if(matched)
                     {
-                        let term_index = item[field as "name" | "nsi" | "pr"].toLowerCase().indexOf(term.toLowerCase())
+                        let term_index = item[field as typeof Fields[number]].toLowerCase().indexOf(term.toLowerCase());
                         filteredResult[item_index].highlights[field as "name" | "nsi" | "pr"].push([term_index, term.length]);
                         // filteredResult[item_index][field] = 
                         //     item[field].slice(0,term_index) + 
@@ -117,15 +126,16 @@
     {
         let merged_highlights = [];
         let highlights = filteredItems[id].highlights[field];
-        highlights = highlights.sort( (a,b) => a[0] - b[0]);
+        highlights = highlights.sort( (a,b) => a[0] - b[0] || a[1] - b[1]);
+
         for(let i = 0; i < highlights.length; i++)
         {
             if(!merged_highlights.length) merged_highlights.push(highlights[i])
             else
             {
-                if(highlights[i - 1][1] > highlights[i][0])
+                if(highlights[i - 1][0] + highlights[i - 1][1] > highlights[i][0])
                 {
-                    merged_highlights[merged_highlights.length - 1][1] = highlights[i][1];
+                    merged_highlights[merged_highlights.length - 1][1] = highlights[i][0] + highlights[i][1] - highlights[i - 1][0];
                 }
                 else
                 {
@@ -208,6 +218,11 @@
 
         return `Последнее обновление${time_string} назад`;
     }
+
+    function ShowUploadModal()
+    {
+        ToggleUploadModal(true);
+    }
 </script>
 
 <main>
@@ -218,7 +233,6 @@
             ЗАГРУЗКА...
         </div>
     {:else}
-        <div class="last-update-bar">{LAST_UPDATE_STRING}</div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
@@ -226,6 +240,9 @@
         </div>
         <div class="status-bar">
             <div class="items-count">Результатов: {filteredItems.length} шт.</div>
+            {#each SEARCH_TERMS as term}
+                <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
+            {/each}
         </div>
         <div class="list">
             <!--  -->
@@ -249,7 +266,9 @@
                 </div>
             {/each}
         </div>
+        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
+        <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
     {/if}
     <MapModal />
     <TrayTooltip bind:AddMessage={AddMessage} />
@@ -257,6 +276,13 @@
 </main>
 
 <style>
+    .search-term,
+    .items-count,
+    .search-bar input,
+    .search-bar-clear-btn,
+    .item{
+        filter: drop-shadow(2px 2px 0 black);
+    }
     .loading-page{
         display: flex;
         justify-content: center;
@@ -279,6 +305,12 @@
     /*  */
     .last-update-bar{
         font-size: 0.8rem;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        row-gap: 2px;
+        border-top: 1px solid black;
     }
     /*  */
     main{
@@ -308,9 +340,41 @@
         border-radius: 5px;
     }
 
+    .search-bar-clear-btn{
+        cursor: pointer;
+        border: 1px solid black;
+        margin: 0 4px;
+        padding: 2px;
+        border-radius: 5px;
+        background-color: white;
+    }
+
     .status-bar{
         display: flex;
-        justify-content: center;
+        background-color: white;
+        border-bottom: 1px solid black;
+        gap: 10px;
+        margin: 5px 0;
+        padding: 4px 0;
+        flex-wrap: wrap;
+        row-gap: 5px;
+    }
+    .items-count{
+        background-color: white;
+        border: 1px solid black;
+        padding: 2px;
+    }
+
+    .search-term{
+        border: 1px solid black;
+        padding: 2px;
+        border-radius: 5px;
+    }
+    .search-term.include{
+        background-color: lightgreen;
+    }
+    .search-term.exclude{
+        background-color: lightcoral;
     }
     
     .list{
@@ -319,6 +383,7 @@
         overflow: hidden;
         overflow-y: auto;
         min-height: 0;
+        position: relative;
     }
 
     .item{
@@ -330,6 +395,9 @@
     }
     .item.even{
         background-color: #fff0e6;
+    }
+    .item.odd{
+        background-color: white;
     }
     :global(.highlight){
         background-color: lightgreen;

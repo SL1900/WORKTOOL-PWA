@@ -60,4 +60,9 @@ declare namespace App {
 		key: string,
 		items: MapPolygon[]
 	}
+
+	interface SearchTerm{
+		text: string,
+		exclude: boolean
+	}
 }
