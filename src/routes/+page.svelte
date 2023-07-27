@@ -111,7 +111,12 @@
         //
         try
         {
-            let items_data = await fetch("https://datastoragesl.somedude0.repl.co/download");
+            let items_data = await fetch("https://datastoragesl.somedude0.repl.co/download",{
+                method: "GET",
+                headers:{
+                    "Accept-Encoding": "gzip, compress, br"
+                }
+            });
             data = await items_data.json();
             let last_update = await fetch("https://datastoragesl.somedude0.repl.co/last_update");
             LAST_UPDATE = (await last_update.json()).timestamp;
