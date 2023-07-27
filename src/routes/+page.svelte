@@ -252,6 +252,10 @@
     }
 </script>
 
+<svelte:head>
+    <title>Поиск ТМЦ</title> 
+</svelte:head>
+
 <main>
     <!--  -->
     {#if INITIAL_LOADING}
