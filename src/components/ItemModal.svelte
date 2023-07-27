@@ -4,7 +4,10 @@
 		 name: "",
 		 id: "",
 		 cells: {},
-		 unit: ""
+		 unit: "",
+         highlights: {name: [], nsi: [], pr: []},
+         nsi: "",
+         pr: ""
 	 };
     let modal_show = false;
 
