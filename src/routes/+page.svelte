@@ -5,8 +5,10 @@
 	import MapModal from "../components/MapModal.svelte";
     import UploadModal from "../components/UploadModal.svelte";
 	import Paginator from "../components/Paginator.svelte";
+	import FeedbackModal from "../components/FeedbackModal.svelte";
 
     let AddMessage : (message: string) => void;
+    let ToggleFeedbackModal : (state?: boolean) => void;
     let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
@@ -296,6 +298,10 @@
     {
         ToggleUploadModal(true);
     }
+    function ShowFeedbackModal()
+    {
+        ToggleFeedbackModal(true);
+    }
 
     function SwitchPage(target: number, exact?: boolean)
     {
@@ -366,9 +372,11 @@
             <Paginator bind:current={CURRENT_PAGE} bind:max={MAX_PAGES} callback={SwitchPage}/>
             {LAST_UPDATE_STRING} 
             <!-- <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button> -->
+            <button on:click={ShowFeedbackModal} on:keydown={ShowFeedbackModal}>Предложения</button>
         </div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
         <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
+        <FeedbackModal bind:ToggleModal={ToggleFeedbackModal} />
     {/if}
     <MapModal />
     <TrayTooltip bind:AddMessage={AddMessage} />
