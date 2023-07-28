@@ -3,7 +3,7 @@
     "name": "WorkTool",
     "short_name": "WorkTool",
     "display": "standalone",
-    "start_url": "/",
+    "start_url": "../",
     "scope": "/",
     "theme_color": "#00d1b2",
     "background_color": "#ffffff",
