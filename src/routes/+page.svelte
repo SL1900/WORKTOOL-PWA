@@ -12,10 +12,13 @@
     let modalItem: App.ItemData;
 
     const SORT_OPTIONS = {
-        NAME: "Имя",
-        NSI: "НСИ",
-        CELL: "Ячейка"
+        index: "Индекс",
+        name: "Имя",
+        nsi: "НСИ",
+        cells: "Ячейка"
     };
+
+    let SELECTED_SORT_OPTION : keyof typeof SORT_OPTIONS;
 
     let PAGE_LIMIT = 25;
 
@@ -54,6 +57,7 @@
 
     let filteredResult = items;
     $:{
+        SELECTED_SORT_OPTION;
         filteredResult = JSON.parse(JSON.stringify(items));
 
         SEARCH_TERMS = [];
@@ -110,7 +114,27 @@
                 return term_matched === !minus_term;
             });
         }
-        filteredItems = filteredResult;
+        // filteredItems = filteredResult;
+        filteredItems = filteredResult.sort(SortBehaviour);
+    }
+
+    function SortBehaviour(a: App.ItemData, b: App.ItemData)
+    {
+        let result:number = -1;
+
+        switch(SELECTED_SORT_OPTION)
+        {
+            case "name":
+            case "nsi":
+                result = a[SELECTED_SORT_OPTION].localeCompare(b[SELECTED_SORT_OPTION]);
+                break;
+            case "cells":
+                result = Object.entries(a.cells)[0].toString().localeCompare(Object.entries(a.cells)[0].toString());
+                break;
+            case "index":
+                break;
+        }
+        return result;
     }
 
     onMount( async ()=>{
@@ -280,6 +304,9 @@
 
         if(CURRENT_PAGE < 1) CURRENT_PAGE = 1;
         if(CURRENT_PAGE > MAX_PAGES) CURRENT_PAGE = MAX_PAGES;
+
+        //
+        document.querySelector(".list")?.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
 
@@ -306,7 +333,7 @@
                 <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
             {/each}
             <div class="options">
-                <select name="" id="" class="sort_options">
+                <select name="" id="" class="sort_options" bind:value={SELECTED_SORT_OPTION}>
                     {#each Object.entries(SORT_OPTIONS) as [option, text]}
                         <option value="{option}">{text}</option>
                     {/each}
