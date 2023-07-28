@@ -65,4 +65,13 @@ declare namespace App {
 		text: string,
 		exclude: boolean
 	}
+
+	interface FeedbackData{
+        [key: string]:{
+            message: string,
+			id: string,
+			author_ip: string,
+			timestamp: number
+        }
+    };
 }
