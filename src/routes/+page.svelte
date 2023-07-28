@@ -4,11 +4,27 @@
 	import ItemModal from "../components/ItemModal.svelte";
 	import MapModal from "../components/MapModal.svelte";
     import UploadModal from "../components/UploadModal.svelte";
+	import Paginator from "../components/Paginator.svelte";
 
     let AddMessage : (message: string) => void;
     let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
+
+    const SORT_OPTIONS = {
+        NAME: "Имя",
+        NSI: "НСИ",
+        CELL: "Ячейка"
+    };
+
+    let PAGE_LIMIT = 25;
+
+    let CURRENT_PAGE = 1;
+    $: MAX_PAGES = Math.ceil(filteredItems.length / PAGE_LIMIT);
+    $:{
+        MAX_PAGES;
+        if(CURRENT_PAGE > MAX_PAGES && MAX_PAGES > 0) CURRENT_PAGE = MAX_PAGES;
+    }
 
     let LAST_UPDATE : number = 0;
     let LAST_UPDATE_STRING : string = "";
@@ -16,10 +32,8 @@
     let data : App.DataFile = {};
     let items: App.ItemData[] = [];
     let filteredItems : App.ItemData[] = [];
-    let displayItems : App.ItemData[] = [];
 
     let search_string = "";
-    let current_page = 0;
 
     let INITIAL_LOADING = true;
     let RESULTS_FROM_STORAGE = false;
@@ -74,8 +88,16 @@
                 {
                     if(matched)
                     {
-                        let term_index = item[field as typeof Fields[number]].toLowerCase().indexOf(term.toLowerCase());
-                        filteredResult[item_index].highlights[field as "name" | "nsi" | "pr"].push([term_index, term.length]);
+                        let matches = item[field as typeof Fields[number]].toLowerCase().split(new RegExp(`(${term.toLowerCase()})`));
+                        let indexes = [];
+                        let index = 0;
+                        for(let i = 0; i < matches.length; i++)
+                        {
+                            if(matches[i] === term.toLowerCase()) filteredResult[item_index].highlights[field as "name" | "nsi" | "pr"].push([index,term.length]);
+                            index = index + matches[i].length;
+                        }
+                        // let term_index = item[field as typeof Fields[number]].toLowerCase().indexOf(term.toLowerCase());
+                        // filteredResult[item_index].highlights[field as "name" | "nsi" | "pr"].push([term_index, term.length]);
                         // filteredResult[item_index][field] = 
                         //     item[field].slice(0,term_index) + 
                         //     `<span class="highlight">` + 
@@ -140,19 +162,19 @@
 
     function ItemSelect(this: HTMLElement, event: KeyboardEvent | MouseEvent)
     {
-        let item_id : string = this.getAttribute("data-id") as string;
-        modalItem = data[item_id as keyof typeof data];
-        ToggleModal(true);
+        // let item_id : string = this.getAttribute("data-id") as string;
+        // modalItem = data[item_id as keyof typeof data];
+        // ToggleModal(true);
     }
     function ClearSearch()
     {
         search_string = "";
         SEARCH_INPUT_ELEMENT.focus();
     }
-    function GetHighlightedString(id: number,field: "name" | "nsi" | "pr", item_id: string)
+    function GetHighlightedString(item : App.ItemData,field: "name" | "nsi" | "pr", item_id: string)
     {
         let merged_highlights = [];
-        let highlights = filteredItems[id].highlights[field];
+        let highlights = item.highlights[field];
         highlights = highlights.sort( (a,b) => a[0] - b[0] || a[1] - b[1]);
 
         for(let i = 0; i < highlights.length; i++)
@@ -171,7 +193,7 @@
             }
         }
 
-        let result_string = filteredItems[id][field]
+        let result_string = item[field]
         for(let i = merged_highlights.length - 1; i >= 0; i--)
         {
             result_string = 
@@ -250,6 +272,15 @@
     {
         ToggleUploadModal(true);
     }
+
+    function SwitchPage(target: number, exact?: boolean)
+    {
+        if(exact) CURRENT_PAGE = target;
+        else CURRENT_PAGE += target;
+
+        if(CURRENT_PAGE < 1) CURRENT_PAGE = 1;
+        if(CURRENT_PAGE > MAX_PAGES) CURRENT_PAGE = MAX_PAGES;
+    }
 </script>
 
 <svelte:head>
@@ -274,14 +305,21 @@
             {#each SEARCH_TERMS as term}
                 <div class="search-term {term.exclude ? "exclude" : "include"}">{term.text}</div>
             {/each}
+            <div class="options">
+                <select name="" id="" class="sort_options">
+                    {#each Object.entries(SORT_OPTIONS) as [option, text]}
+                        <option value="{option}">{text}</option>
+                    {/each}
+                </select>
+            </div>
         </div>
         <div class="list">
             <!--  -->
-            {#each filteredItems.slice(0,50) as item, index}
+            {#each filteredItems.slice(PAGE_LIMIT * (CURRENT_PAGE - 1), PAGE_LIMIT * CURRENT_PAGE) as item, index}
                 <div class="item { index % 2 ? "odd" : "even"}" on:click={ItemSelect} on:keydown={ItemSelect} data-id="{item.id}">
                     <div class="details">
-                        <div class="name">{@html GetHighlightedString(index, "name",item.id)}</div>
-                        <div class="nsi-pr">{@html GetHighlightedString(index, "nsi",item.id)} / {@html GetHighlightedString(index, "pr",item.id)}</div>
+                        <div class="name">{@html GetHighlightedString(item, "name",item.id)}</div>
+                        <div class="nsi-pr">{@html GetHighlightedString(item, "nsi",item.id)} / {@html GetHighlightedString(item, "pr",item.id)}</div>
                         <div class="cells-list">
                             {#each Object.entries(item.cells) as [cellName, count]}
                                 <div class="cell">
@@ -297,7 +335,11 @@
                 </div>
             {/each}
         </div>
-        <div class="last-update-bar">{LAST_UPDATE_STRING} <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button></div>
+        <div class="last-update-bar">
+            {LAST_UPDATE_STRING} 
+            <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button>
+            <Paginator bind:current={CURRENT_PAGE} bind:max={MAX_PAGES} callback={SwitchPage}/>
+        </div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
         <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
     {/if}
