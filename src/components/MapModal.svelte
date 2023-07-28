@@ -220,7 +220,7 @@
 
 <main on:click={CloseModal} on:keydown={CloseModal} style="display: {modal_show ? "flex" : "none"};">
     <!--  -->
-    <div class="body">
+    <div class="body" on:click={StopProp} on:keydown={StopProp}>
         <div class="areas">
             <!--  -->
             {#each Object.entries(Areas) as [area_name, details]}
