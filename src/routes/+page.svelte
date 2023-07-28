@@ -363,9 +363,9 @@
             {/each}
         </div>
         <div class="last-update-bar">
-            {LAST_UPDATE_STRING} 
-            <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button>
             <Paginator bind:current={CURRENT_PAGE} bind:max={MAX_PAGES} callback={SwitchPage}/>
+            {LAST_UPDATE_STRING} 
+            <!-- <button on:click={ShowUploadModal} on:keydown={ShowUploadModal}>Обновить</button> -->
         </div>
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
         <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
@@ -404,9 +404,12 @@
     }
     /*  */
     .last-update-bar{
+        padding: 2px;
         font-size: 0.8rem;
         display: flex;
+        flex-direction: column;
         justify-content: center;
+        align-items: center;
         flex-wrap: wrap;
         gap: 10px;
         row-gap: 2px;
