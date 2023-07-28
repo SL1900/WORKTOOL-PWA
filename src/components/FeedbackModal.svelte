@@ -28,8 +28,7 @@
         INPUT_ELEMENT.addEventListener("keydown", async (event)=>{
             if(event.code === "Enter")
             {
-                SendFeedback(input_value);
-                input_value = "";
+                SendFeedback();
             }
         });
 
@@ -37,8 +36,10 @@
         setInterval(GetFeedback,30000);
     });
 
-    async function SendFeedback(feedback: string)
+    async function SendFeedback()
     {
+        let feedback: string = input_value;
+        input_value = "";
         let request = await fetch("https://datastoragesl.somedude0.repl.co/feedback",{
             method: "POST",
             headers: {
@@ -74,7 +75,7 @@
         </div>
         <div class="chat-box">
             <input type="text" bind:this={INPUT_ELEMENT} bind:value={input_value}>
-            <button class="send-btn"><img src="ArrowRight.svg" alt="Arrow Right"></button>
+            <button on:click={SendFeedback} on:keydown={SendFeedback} class="send-btn"><img src="ArrowRight.svg" alt="Arrow Right"></button>
         </div>
     </div>
 </main>
