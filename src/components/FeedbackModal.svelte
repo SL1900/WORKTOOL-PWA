@@ -47,7 +47,7 @@
             },
             body: JSON.stringify({
                 command: "insert",
-                message: input_value
+                message: feedback
             })
         });
         GetFeedback();
