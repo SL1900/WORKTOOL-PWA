@@ -1,12 +1,12 @@
 {
     "id": "sl-worktool",
-    "name": "WorkTool",
-    "short_name": "WorkTool",
+    "name": "Поиск ТМЦ ЦС",
+    "short_name": "Поиск ТМЦ",
     "display": "standalone",
     "start_url": "https://github.com/SL1900/WORKTOOL-PWA",
     "scope": "/",
     "theme_color": "#00d1b2",
-    "background_color": "#ffffff",
+    "background_color": "#00d1b2",
     "orientation": "any",
     "lang": "ru",
     "icons":[
