@@ -70,6 +70,7 @@ declare namespace App {
         [key: string]:{
             message: string,
 			id: string,
+			status: boolean,
 			author_ip: string,
 			timestamp: number
         }

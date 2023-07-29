@@ -70,6 +70,7 @@
                 <div class="item">
                     <div class="message">{item.message}</div>
                     <div class="timestamp">{new Date(item.timestamp).toLocaleDateString("ru-RU",{year: 'numeric', month: 'long', day: 'numeric', hour: "numeric", minute: "numeric", second: "numeric"}) }</div>
+                    <div class="status {item.status ? "done" : "pending"}">{item.status ? "Выполнено" : "Не выполнено"}</div>
                 </div>
             {/each}
         </div>
@@ -142,17 +143,27 @@
         width: 100%;
         height: 100%;
     }
+    .status{
+        font-size: 0.75rem;
+    }
 
     .close-btn{
         position: absolute;
-        width: 8vw;
-        height: 8vw;
-        right: 2vw;
-        top: 2vw;
+        width: 2rem;
+        height: 2rem;
+        right: 1rem;
+        top: 1rem;
         cursor: pointer;
     }
     .close-btn img{
         width: 100%;
         height: 100%;
+    }
+
+    .status.done{
+        border: green;
+    }
+    .status.pending{
+        border: red;
     }
 </style>
