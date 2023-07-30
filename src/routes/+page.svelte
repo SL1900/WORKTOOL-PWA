@@ -328,6 +328,14 @@
             ЗАГРУЗКА...
         </div>
     {:else}
+        <div class="navbar">
+            <div class="title">Поиск ТМЦ</div>
+            <div class="nav-btns">
+                <div class="account-icon">
+                    <img src="avatar-blank.svg" alt="Avatar blank">
+                </div>
+            </div>
+        </div>
         <div class="search-bar">
             <div class="text">Поиск:</div>
             <input type="text" bind:this={SEARCH_INPUT_ELEMENT} bind:value={search_string}>
@@ -384,6 +392,34 @@
 </main>
 
 <style>
+    .navbar{
+        display: flex;
+        border-bottom: 1px solid black;
+        padding: 5px;
+        align-items: center;
+        font-size: 1.25rem;
+        text-transform: uppercase;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: 600;
+    }
+    .navbar .title{
+        flex: 1;
+    }
+    .nav-btns{
+        display: flex;
+        float: right;
+        height: 4vh;
+    }
+
+    .account-icon{
+        cursor: pointer;
+    }
+    .account-icon,
+    .account-icon img{
+        height: 100%;
+        border-radius: 50%;
+
+    }
     .search-term,
     .items-count,
     .search-bar input,
@@ -436,12 +472,13 @@
     }
     .search-bar{
         display: flex;
-        border-bottom: 1px solid black;
-        padding: 5px;
+        /* border-bottom: 1px solid black; */
+        padding-top: 5px;
         justify-content: center;
     }
     .search-bar input{
         flex: 1;
+        background-color: white;
     }
     .search-bar-clear-btn{
         cursor: pointer;
