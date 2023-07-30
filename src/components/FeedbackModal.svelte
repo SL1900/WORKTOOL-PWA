@@ -26,7 +26,7 @@
     onMount(()=>{
         // 
         INPUT_ELEMENT.addEventListener("keydown", async (event)=>{
-            if(event.code === "Enter")
+            if(event.code === "Enter" || event.code === "NumpadEnter" || event.key === "Enter")
             {
                 SendFeedback();
             }
@@ -75,8 +75,8 @@
             {/each}
         </div>
         <div class="chat-box">
-            <input type="text" bind:this={INPUT_ELEMENT} bind:value={input_value}>
-            <button on:click={SendFeedback} on:keydown={SendFeedback} class="send-btn"><img src="ArrowRight.svg" alt="Arrow Right"></button>
+            <input type="text" placeholder="Вводите свои предложения сюда..." bind:this={INPUT_ELEMENT} bind:value={input_value}>
+            <button on:click={SendFeedback} on:keydown={SendFeedback} class="send-btn">send<img src="ArrowRight.svg" alt="Arrow Right"></button>
         </div>
     </div>
 </main>
@@ -138,10 +138,14 @@
     }
     .send-btn{
         flex: 1;
+        display: flex;
+        font-size: 0.75rem;
+        justify-content: center;
+        align-items: center;
     }
     .send-btn img{
-        width: 100%;
-        height: 100%;
+        width: 1rem;
+        height: 1rem;
     }
     .status{
         font-size: 0.75rem;
