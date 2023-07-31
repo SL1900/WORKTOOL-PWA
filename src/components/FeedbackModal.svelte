@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_DATA_URL } from "$env/static/public";
 	import { onMount } from "svelte";
 
     // 
@@ -40,7 +41,7 @@
     {
         let feedback: string = input_value;
         input_value = "";
-        let request = await fetch("https://datastoragesl.somedude0.repl.co/feedback",{
+        let request = await fetch( PUBLIC_DATA_URL + "/feedback",{
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -54,7 +55,7 @@
     }
     async function GetFeedback()
     {
-        let request = await fetch("https://datastoragesl.somedude0.repl.co/feedback",{method: "GET"});
+        let request = await fetch( PUBLIC_DATA_URL + "/feedback",{method: "GET"});
         feedback_data = await request.json();
     }
 </script>

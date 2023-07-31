@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { PUBLIC_DATA_URL } from "$env/static/public";
   import Page from "../routes/+page.svelte";
 
     // 
@@ -11,7 +12,7 @@
     {
         for(let file of files)
         {
-            // fetch("https://datastoragesl.somedude0.repl.co/upload",{
+            // fetch( PUBLIC_DATA_URL + "/upload",{
             //     method: "POST"
             // });
         }
@@ -27,7 +28,7 @@
 
             UPLOADING = true;
             UPLOAD_DONE = false;
-            await fetch("https://datastoragesl.somedude0.repl.co/upload",{
+            await fetch( PUBLIC_DATA_URL + "/upload",{
                 method: "POST",
                 body: data
             });
