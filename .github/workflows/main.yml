@@ -28,7 +28,10 @@ jobs:
           node-version: 20
           cache: "npm"
       - run: npm ci
-      - run: npm run build
+      - name: "npm build"
+        env:
+          PUBLIC_DATA_URL: ${{ secrets.PUBLIC_DATA_URL }}
+        run: npm run build
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v1
         with:
