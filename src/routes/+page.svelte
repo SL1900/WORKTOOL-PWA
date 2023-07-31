@@ -6,9 +6,14 @@
     import UploadModal from "../components/UploadModal.svelte";
 	import Paginator from "../components/Paginator.svelte";
 	import FeedbackModal from "../components/FeedbackModal.svelte";
+	import AccountModal from "../components/AccountModal.svelte";
+	import { get } from "svelte/store";
+	import { currentUserSecret } from "../stores";
+	import { PUBLIC_DATA_URL } from "$env/static/public";
 
     let AddMessage : (message: string) => void;
     let ToggleFeedbackModal : (state?: boolean) => void;
+    let ToggleAccountModal : (state?: boolean) => void;
     let ToggleUploadModal : (state : boolean) => void;
     let ToggleModal : (state?: boolean) => void;
     let modalItem: App.ItemData;
@@ -140,6 +145,7 @@
     }
 
     onMount( async ()=>{
+        CheckLoginStatus();
         try {
             //
             let data_string = localStorage.getItem("data_string");
@@ -159,14 +165,14 @@
         //
         try
         {
-            let items_data = await fetch("https://datastoragesl.somedude0.repl.co/download",{
+            let items_data = await fetch( PUBLIC_DATA_URL + "/download",{
                 method: "GET",
                 headers:{
                     "Accept-Encoding": "gzip, compress, br"
                 }
             });
             data = await items_data.json();
-            let last_update = await fetch("https://datastoragesl.somedude0.repl.co/last_update");
+            let last_update = await fetch( PUBLIC_DATA_URL + "/last_update");
             LAST_UPDATE = (await last_update.json()).timestamp;
             LAST_UPDATE_STRING = GetLastUpdateString(LAST_UPDATE);
 
@@ -185,6 +191,11 @@
         }
         //
     });
+
+    function CheckLoginStatus()
+    {
+        return !!get(currentUserSecret);
+    }
 
     function ItemSelect(this: HTMLElement, event: KeyboardEvent | MouseEvent)
     {
@@ -302,6 +313,10 @@
     {
         ToggleFeedbackModal(true);
     }
+    function ShowAccountModal()
+    {
+        ToggleAccountModal(true);
+    }
 
     function SwitchPage(target: number, exact?: boolean)
     {
@@ -331,7 +346,7 @@
         <div class="navbar">
             <div class="title">Поиск ТМЦ</div>
             <div class="nav-btns">
-                <div class="account-icon">
+                <div class="account-icon" on:click={ShowAccountModal} on:keydown={ShowAccountModal}>
                     <img src="avatar-blank.svg" alt="Avatar blank">
                 </div>
             </div>
@@ -385,6 +400,7 @@
         <ItemModal bind:ToggleModal={ToggleModal} bind:details={modalItem} />
         <UploadModal bind:Toggle={ToggleUploadModal} bind:this={UPLOAD_MODAL} />
         <FeedbackModal bind:ToggleModal={ToggleFeedbackModal} />
+        <AccountModal bind:ToggleModal={ToggleAccountModal} />
     {/if}
     <MapModal />
     <TrayTooltip bind:AddMessage={AddMessage} />
