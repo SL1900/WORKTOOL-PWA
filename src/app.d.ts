@@ -75,4 +75,10 @@ declare namespace App {
 			timestamp: number
         }
     };
+
+	interface AccountInfo{
+		username: string,
+		secret: string,
+		displayName: string
+	}
 }
