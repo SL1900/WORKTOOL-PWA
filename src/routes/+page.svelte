@@ -10,6 +10,7 @@
 	import { get } from "svelte/store";
 	import { currentUserSecret } from "../stores";
 	import { PUBLIC_DATA_URL } from "$env/static/public";
+	import { browser } from "$app/environment";
 
     let AddMessage : (message: string) => void;
     let ToggleFeedbackModal : (state?: boolean) => void;
@@ -145,6 +146,10 @@
     }
 
     onMount( async ()=>{
+        if(browser){
+            screen.orientation.lock("portrait");
+        }
+
         CheckLoginStatus();
         try {
             //
