@@ -12,6 +12,8 @@ MakePersistent(currentUserInfo, "userInfo");
 
 function MakePersistent(store: Writable<string|App.AccountInfo|null>,localstorageKey: string)
 {
+    localStorage.setItem(localstorageKey, "");
+    return;
     let interval = setInterval(()=>{
         //
         if(browser)
