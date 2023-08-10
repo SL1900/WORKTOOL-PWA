@@ -185,7 +185,7 @@ localStorage.setItem("data_string",JSON.stringify({"10000000000": {
                     "Accept-Encoding": "gzip, compress, br"
                 }
             });
-            items_data_json =I am await items_data_json.json();
+            items_data_json = await items_data_json.json();
             if(items_data_json.status == "error") throw new Error("Data error");
             data = items_data_json;
             let last_update = await fetch( PUBLIC_DATA_URL + "/last_update");
