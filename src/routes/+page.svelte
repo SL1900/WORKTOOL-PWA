@@ -162,7 +162,6 @@ localStorage.setItem("data_string",JSON.stringify({"10000000000": {
       "0": 1
     }
   } } ));
-throw new Error("Yeh");
             let data_string = localStorage.getItem("data_string");
             if(!data_string) throw new Error("No data saved");
 
