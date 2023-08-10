@@ -179,7 +179,14 @@ localStorage.setItem("data_string",JSON.stringify({"10000000000": {
         //
         try
         {
-            let items_data = await fetch( PUBLIC_DATA_URL + "/download",{
+let access = "";
+if(browser) {
+if(localStorage.getItem("accessKey")) {
+let answer = window.prompt("Код доступа");
+
+} 
+} 
+            let items_data = await fetch( PUBLIC_DATA_URL + "/download" + "?accessKey=" + access,{
                 method: "GET",
                 headers:{
                     "Accept-Encoding": "gzip, compress, br"
