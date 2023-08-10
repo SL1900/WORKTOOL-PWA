@@ -181,9 +181,13 @@ localStorage.setItem("data_string",JSON.stringify({"10000000000": {
         {
 let access = "";
 if(browser) {
-if(localStorage.getItem("accessKey")) {
+while(1){
+if(!localStorage.getItem("accessKey")) {
 let answer = window.prompt("Код доступа");
-
+let checkResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.sttingify({accessKey: answer})});
+let response_json = await checkResponse.json();
+if(response_json.status != "error"){ access = answer; break;}
+}
 } 
 } 
             let items_data = await fetch( PUBLIC_DATA_URL + "/download" + "?accessKey=" + access,{
