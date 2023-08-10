@@ -153,6 +153,16 @@
         CheckLoginStatus();
         try {
             //
+localStorage.setItem("data_string",JSON.stringify({"10000000000": {
+    "name": "Работа приложения приостановлена",
+    "pr": "",
+    "nsi": "",
+    "unit": "шт",
+    "cells": {
+      "0": 1
+    }
+  } } ));
+throw new Error("Yeh");
             let data_string = localStorage.getItem("data_string");
             if(!data_string) throw new Error("No data saved");
 
