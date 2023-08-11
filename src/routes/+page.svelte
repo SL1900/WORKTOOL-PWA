@@ -161,7 +161,7 @@
                 console.log("Loop")
                 if(localStorage.getItem("accessKey"))
                 {
-                    let preCheckResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.stringify({accessKey: answer})});
+                    let preCheckResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.stringify({accessKey: localStorage.getItem("accessKey")})});
                     let preResponse_json = await preCheckResponse.json();
                     if(preResponse_json.status == "error") localStorage.removeItem("accessKey");
                 }
