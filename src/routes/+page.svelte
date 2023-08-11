@@ -151,17 +151,38 @@
         }
 
         CheckLoginStatus();
+
+        let accessKey = "";
+
+        if(browser)
+        {
+            //
+            while(true){
+                console.log("Loop")
+                if(localStorage.getItem("accessKey")) break;
+
+                let answer = window.prompt("Код доступа") as string;
+                let checkResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.stringify({accessKey: answer})});
+                let response_json = await checkResponse.json();
+                if(response_json.status != "error"){ accessKey = answer; localStorage.setItem("accessKey", accessKey); break;}
+            } 
+        }
+
         try {
             //
-localStorage.setItem("data_string",JSON.stringify({"10000000000": {
-    "name": "Работа приложения приостановлена",
-    "pr": "",
-    "nsi": "",
-    "unit": "шт",
-    "cells": {
-      "0": 1
-    }
-  } } ));
+            if(!localStorage.getItem("accessKey")){
+                localStorage.setItem("data_string",JSON.stringify({
+                    "10000000000": {
+                        "name": "Работа приложения приостановлена",
+                        "pr": "",
+                        "nsi": "",
+                        "unit": "шт",
+                        "cells": {
+                            "0": 1
+                        }
+                    }
+                }));
+            }
             let data_string = localStorage.getItem("data_string");
             if(!data_string) throw new Error("No data saved");
 
@@ -179,24 +200,14 @@ localStorage.setItem("data_string",JSON.stringify({"10000000000": {
         //
         try
         {
-let access = "";
-if(browser) {
-while(1){
-if(!localStorage.getItem("accessKey")) {
-let answer = window.prompt("Код доступа");
-let checkResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.sttingify({accessKey: answer})});
-let response_json = await checkResponse.json();
-if(response_json.status != "error"){ access = answer; break;}
-}
-} 
-} 
-            let items_data = await fetch( PUBLIC_DATA_URL + "/download" + "?accessKey=" + access,{
+            if(!accessKey) accessKey = localStorage.getItem("accessKey") as string;
+            let items_data = await fetch( PUBLIC_DATA_URL + "/download" + "?accessKey=" + accessKey,{
                 method: "GET",
                 headers:{
                     "Accept-Encoding": "gzip, compress, br"
                 }
             });
-            items_data_json = await items_data_json.json();
+            let items_data_json = await items_data.json();
             if(items_data_json.status == "error") throw new Error("Data error");
             data = items_data_json;
             let last_update = await fetch( PUBLIC_DATA_URL + "/last_update");
