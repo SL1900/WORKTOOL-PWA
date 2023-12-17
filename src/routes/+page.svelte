@@ -147,7 +147,10 @@
 
     onMount( async ()=>{
         if(browser){
-            screen.orientation.lock("portrait");
+            if(screen.orientation && screen.orientation.lock)
+            {
+                screen.orientation.lock("portrait");
+            }
         }
 
         CheckLoginStatus();
