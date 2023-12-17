@@ -164,14 +164,14 @@
                 console.log("Loop")
                 if(localStorage.getItem("accessKey"))
                 {
-                    let preCheckResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.stringify({accessKey: localStorage.getItem("accessKey")})});
+                    let preCheckResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},body: JSON.stringify({accessKey: localStorage.getItem("accessKey")})});
                     let preResponse_json = await preCheckResponse.json();
                     if(preResponse_json.status == "error") localStorage.removeItem("accessKey");
                     else break;
                 }
 
                 let answer = window.prompt("Код доступа") as string;
-                let checkResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json"},body: JSON.stringify({accessKey: answer})});
+                let checkResponse = await fetch(PUBLIC_DATA_URL + "/accessCheck",{method: "POST",headers:{"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},body: JSON.stringify({accessKey: answer})});
                 let response_json = await checkResponse.json();
                 if(response_json.status != "error"){ accessKey = answer; localStorage.setItem("accessKey", accessKey); break;}
             } 
